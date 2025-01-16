@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCL Map Demo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@3.0.0/dist/leaflet-control-geocoder.css" />
+    <style>
+      #map {
+          height: 500px;
+          width: 100%;
+      }
+      .polygon-label {
+          font-weight: bold;
+          color: #333;
+          background-color: rgba(255, 255, 255, 0.8);
+          padding: 2px 4px;
+          border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>NCL Map Demo</h1>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder@3.0.0/dist/Control.Geocoder.js"></script>
+    <script>
+      var map = L.map('map').setView([41.2835, -70.0995], 13);
+      map.attributionControl.setPrefix();
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      const geojsonFiles = [
+          "Brant_Point.geojson",
+          "Cisco.geojson",
+          "Fishers_Landing.geojson",
+          "Hinckley_Lane.geojson",
+          "Hummock_Nantucket.geojson",
+          "Hummock_Pond.geojson",
+          "Hussey_Farm.geojson",
+          "Madaket.geojson",
+          "Monomoy.geojson",
+          "Nantucket_Town.geojson",
+          "Naushop.geojson",
+          "Pine_Valley.geojson",
+          "Pocomo.geojson",
+          "Polpis.geojson",
+          "Quidnet_Squam.geojson",
+          "Shimmo.geojson",
+          "Siasconset.geojson",
+          "Smiths_Point.geojson",
+          "Surfside.geojson",
+          "Tom_Nevers.geojson",
+          "Wauwinet.geojson",
+          "West_Miacomet.geojson"
+      ];
+
+      const layerColors = {
+        "Brant Point": "#F2D56A", // Main Street Yellow
+        "Cisco": "#A43E39", // Cottage Red
+        "Fishers Landing": "#4E6172", // Hamilton Blue
+        "Hinckley Lane": "#006E63", // Nantucket Blue
+        "Hummock Nantucket": "#A1A1A4", // Quaker Gray
+        "Hummock Pond": "#007D5C", // Chrome Green
+        "Hussey Farm": "#C9B58A", // Cobblestone
+        "Madaket": "#213D30", // Essex Green
+        "Monomoy": "#C95C5C", // Nantucket Red
+        "Nantucket Town": "#6A7A89", // Newport Blue
+        "Naushop": "#F2D56A", // Main Street Yellow
+        "Pine Valley": "#A43E39", // Cottage Red
+        "Pocomo": "#4E6172", // Hamilton Blue
+        "Polpis": "#C9B58A", // Cobblestone
+        "Quidnet Squam": "#F2D56A", // Main Street Yellow
+        "Shimmo": "#A1A1A4", // Quaker Gray
+        "Siasconset": "#007D5C", // Chrome Green
+        "Smiths Point": "#007D5C", // Chrome Green
+        "Surfside": "#213D30", // Essex Green
+        "Tom Nevers": "#C95C5C", // Nantucket Red
+        "Wauwinet": "#6A7A89", // Newport Blue
+        "West Miacomet": "#F2D56A" // Main Street Yellow
+      };
+
+      geojsonFiles.forEach((file) => {
+          fetch(file)
+              .then(response => response.json())
+              .then(data => {
+                  let fileName = file.split('/').pop().split('.')[0];
+                  fileName = fileName.replace(/_/g, ' ');
+                  const color = layerColors[fileName] || '#000000';
+
+                  L.geoJSON(data, {
+                      style: function () {
+                          return { color: color, weight: 2, fillOpacity: 0.6 };
+                      },
+                      onEachFeature: function (feature, layer) {
+                          layer.bindPopup(`Region: ${fileName}`);
+                          if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+                              layer.bindTooltip(fileName, {
+                                  permanent: true,
+                                  direction: 'center',
+                                  className: 'polygon-label'
+                              });
+                          }
+                      }
+                  }).addTo(map);
+              })
+              .catch(error => console.error(`Error loading ${file}:`, error));
+      });
+
+      L.Control.geocoder({
+        defaultMarkGeocode: true,
+        geocoder: L.Control.Geocoder.nominatim({
+          geocodingQueryParams: {
+            viewbox: '-70.25,41.2357,-69.9353,41.41',
+            bounded: 1
+          }
+        })
+      }).addTo(map);
+    </script>
+  </body>
+</html>
